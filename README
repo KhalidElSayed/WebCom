@@ -1,10 +1,11 @@
-This is a simple Http client package for Android. The caller will need to set up a WebModel object, and have a Handler listen for a SimpleResponse message.
+This is a simple Http client package for Android. The caller will need to set up a
+WebModel object, and have a Handler listen for a SimpleResponse message.
 
 Example implementation:
 
 package com.example.example;
 
-
+import com.feigdev.webcom.WebComListener;
 import com.feigdev.webcom.WebModel;
 import com.feigdev.webcom.SimpleResponse;
 
@@ -16,46 +17,34 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-public class ExampleActivity extends Activity {
+public class ExampleActivity extends Activity implements WebComListener {
 	private static String TAG = "ExampleActivity";
 
 	UniqueId id;
 	
-    /** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
+  /** Called when the activity is first created. */
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         makeRequest();
-    }
-    
-    public void makeRequest() {
+  }
+
+  public void makeRequest() {
     	WebModel wm = new WebModel("http://www.google.com", lHandle);
     	wm.setContentType("text/html");
     	wm.setRequestType("get");
     	wm.interact();
-    }
-    
-	public Handler lHandle = new Handler() {
-		/* (non-Javadoc)
-	    * @see android.os.Handler#handleMessage(android.os.Message)
-	    */
-	    @Override
-	    public void handleMessage(Message msg) {
-	        switch (msg.what) {
-	        case WebModel.RESPONSE:
-	        	if (msg.obj != null){
-	        		SimpleResponse response = (SimpleResponse)msg.obj;
-		        	if (response.getStatus() == SimpleResponse.FAIL){
-		        		errorDialog(response.getMessage());
-		        	}
-		        	Log.d(TAG,response.getMessage());
-	        	}
-	            break;
-	        }
-	    }
-	};
-	
+  }
+
+  public void onResponse(SimpleResponse response) {
+      if (response != null){
+          if (response.getStatus() == SimpleResponse.FAIL){
+            webErrorDialog("Error", "Try again", "Exit", response.getMessage());
+          }
+          Log.d(TAG,response.getMessage());
+      }
+  }
 	
 	private void errorDialog(String message){
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);

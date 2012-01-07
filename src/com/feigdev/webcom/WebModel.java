@@ -7,8 +7,6 @@ import java.util.Iterator;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 /**
@@ -28,9 +26,9 @@ public class WebModel {
 	private String contentType;
 	private HashMap<String, Object> parameters;
 	private SimpleResponse response;
-	private Handler messageHandler;
 	public static final int RESPONSE = 1001;
-
+	private WebComListener listener;
+	
 	/**
 	 * Sets up the WebModel object
 	 * 
@@ -40,7 +38,7 @@ public class WebModel {
 	 * contentType is set to text/html and requestType is set
 	 * to get by default
 	 */
-	public WebModel(String url, Handler handle){
+	public WebModel(String url, WebComListener listener){
 		this.url = url;
 		isSecure = false;
 		requestType = "get";
@@ -49,7 +47,7 @@ public class WebModel {
 		response.setUrl(url);
 		response.setContentType(contentType);
 		response.setStatus(SimpleResponse.NOTEXECUTED);
-		messageHandler = handle;
+		this.listener = listener;
 		parameters = new HashMap<String,Object>();
 	}
 	
@@ -85,10 +83,9 @@ public class WebModel {
             	else if (requestType.equals("post")){
             		response = httpRequest.post(fixedUrl,params,contentType);
             	}
-            	Message msg = new Message();
-            	msg.what = RESPONSE;
-            	msg.obj = response;
-            	messageHandler.sendMessage(msg);
+            	if (listener != null){
+            		listener.onResponse(response);
+            	}
             }
         };
         
