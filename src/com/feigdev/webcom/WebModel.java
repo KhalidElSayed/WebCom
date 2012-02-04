@@ -52,6 +52,29 @@ public class WebModel {
 	}
 	
 	/**
+	 * Sets up the WebModel object
+	 * 
+	 * @param url full url to talk to
+	 * @param handle Handler that will receive messages sent by this object
+	 * 
+	 * contentType is set to text/html and requestType is set
+	 * to get by default
+	 */
+	public WebModel(String url, WebComListener listener, int id){
+		this.url = url;
+		isSecure = false;
+		requestType = "get";
+		contentType = "text/html";
+		response = new SimpleResponse();
+		response.setId(id);
+		response.setUrl(url);
+		response.setContentType(contentType);
+		response.setStatus(SimpleResponse.NOTEXECUTED);
+		this.listener = listener;
+		parameters = new HashMap<String,Object>();
+	}
+	
+	/**
 	 * Run the interaction in the background
 	 */
 	public void interact(){

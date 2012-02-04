@@ -3,5 +3,8 @@
 
     <string name="hello">Hello World!</string>
     <string name="app_name">WebCom</string>
-
+    <string name="username">username</string>
+    <string name="password">password</string>
+	<string name="login">login</string>
+	<string name="cancel">cancel</string>
 </resources>

@@ -12,6 +12,7 @@ public class SimpleResponse {
 	private String message;
 	private String contentType;
 	private String url;
+	private int id;
 	public static final int FAIL = 1;
 	public static final int PASS = 0;
 	public static final int NOTEXECUTED = -1;
@@ -54,6 +55,14 @@ public class SimpleResponse {
 	}
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 	
 	
