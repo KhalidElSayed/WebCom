@@ -1,5 +1,7 @@
 package com.feigdev.webcom;
 
+import org.apache.http.impl.client.BasicCookieStore;
+
 /**
  * This is the object that will be used to send the calling class information
  * about the results of the http interaction.  
@@ -13,6 +15,7 @@ public class SimpleResponse {
 	private String contentType;
 	private String url;
 	private int id;
+	private BasicCookieStore cookies;
 	public static final int FAIL = 1;
 	public static final int PASS = 0;
 	public static final int NOTEXECUTED = -1;
@@ -64,6 +67,13 @@ public class SimpleResponse {
 	public void setId(int id) {
 		this.id = id;
 	}
+
+	public void setCookies(BasicCookieStore cookies) {
+		this.cookies = cookies;
+	}
 	
+	public BasicCookieStore getCookies(){
+		return cookies;
+	}
 	
 }

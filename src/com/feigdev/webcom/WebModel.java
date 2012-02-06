@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.util.Log;
@@ -28,6 +29,7 @@ public class WebModel {
 	private SimpleResponse response;
 	public static final int RESPONSE = 1001;
 	private WebComListener listener;
+	private BasicCookieStore cookies;
 	
 	/**
 	 * Sets up the WebModel object
@@ -43,13 +45,16 @@ public class WebModel {
 		isSecure = false;
 		requestType = "get";
 		contentType = "text/html";
+		cookies = null;
 		response = new SimpleResponse();
 		response.setUrl(url);
+		response.setId(0);
 		response.setContentType(contentType);
 		response.setStatus(SimpleResponse.NOTEXECUTED);
 		this.listener = listener;
 		parameters = new HashMap<String,Object>();
 	}
+	
 	
 	/**
 	 * Sets up the WebModel object
@@ -101,10 +106,10 @@ public class WebModel {
         Runnable runnable = new Runnable() {
             public void run() {
             	if (requestType.equals("get")){
-	            	response = httpRequest.get(fixedUrl,contentType);
+            		response = httpRequest.get(fixedUrl,contentType,response.getId(),cookies);
             	}
             	else if (requestType.equals("post")){
-            		response = httpRequest.post(fixedUrl,params,contentType);
+            		response = httpRequest.post(fixedUrl,params,contentType,response.getId(),cookies);
             	}
             	if (listener != null){
             		listener.onResponse(response);
@@ -115,6 +120,14 @@ public class WebModel {
         // run on background thread.
         WebModel.performOnBackgroundThread(runnable);	
     }
+	
+	public void setCookies(BasicCookieStore cookies){
+		this.cookies = cookies;
+	}
+	
+	public BasicCookieStore getCookies(){
+		return cookies;
+	}
 	
 	public String getUrl() {
 		return url;
@@ -155,7 +168,7 @@ public class WebModel {
 	public void addParameter(String key, Object value) {
 		this.parameters.put(key,value);
 	}
-	
+
 
 	public SimpleResponse getResponse() {
 		return response;

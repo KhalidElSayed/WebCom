@@ -2,7 +2,9 @@ package com.feigdev.webcom;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.CookieStore;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
@@ -13,6 +15,8 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
@@ -45,14 +49,19 @@ public class HttpController {
     /**
      * Configures the httpClient to connect to the URL provided.
      */
-    public void maybeCreateHttpClient() {
+    public void maybeCreateHttpClient(BasicCookieStore cookies) {
         if (mHttpClient == null) {
         	if(Constants.VERBOSE){
         		Log.i(TAG,"maybeCreateHttpClient()");
         	}
             mHttpClient = new DefaultHttpClient();
             
-            mHttpClient.getCookieStore().addCookie(null);
+            if (cookies != null){
+	            for( Cookie cookie: cookies.getCookies()){
+	            	mHttpClient.getCookieStore().addCookie(cookie);
+	            }
+            }
+            
             responseHandler = new BasicResponseHandler();
             final HttpParams params = mHttpClient.getParams();
             HttpConnectionParams.setConnectionTimeout(params, TIMEOUT);
@@ -70,9 +79,10 @@ public class HttpController {
      * SimpleResponse.message contains the actual content that was returned
      * or the error message
      */
-    public SimpleResponse get(String url, String contentType) { 
+    public SimpleResponse get(String url, String contentType, int id, BasicCookieStore cookie) { 
     	SimpleResponse response = new SimpleResponse();
     	response.setUrl(url);
+    	response.setId(id);
     	response.setContentType(contentType);
     	if (url.equals("")){
     		response.setStatus(SimpleResponse.FAIL);
@@ -81,10 +91,12 @@ public class HttpController {
         }
         
         final HttpGet httpRequest = new HttpGet(url);
-        maybeCreateHttpClient();
-
+        
+        maybeCreateHttpClient(cookie);
+                
         try {
         	response.setMessage(mHttpClient.execute(httpRequest, responseHandler));
+        	response.setCookies((BasicCookieStore)mHttpClient.getCookieStore());
         	response.setStatus(SimpleResponse.PASS);
         	return response;
         } catch (final HttpResponseException e) {
@@ -127,9 +139,10 @@ public class HttpController {
       * SimpleResponse.message contains the actual content that was returned
       * or the error message
       */
-	public SimpleResponse post(String url, ArrayList<NameValuePair> params, String contentType) { 
+	public SimpleResponse post(String url, ArrayList<NameValuePair> params, String contentType, int id, BasicCookieStore cookie) { 
 		SimpleResponse response = new SimpleResponse();
 	    response.setUrl(url);
+	    response.setId(id);
 	    response.setContentType(contentType);
 	    if (url.equals("")){
 	    	response.setStatus(SimpleResponse.FAIL);
@@ -151,10 +164,11 @@ public class HttpController {
 	    final HttpPost post = new HttpPost(url);
 	    post.addHeader(entity.getContentType());
 	    post.setEntity(entity);
-	    maybeCreateHttpClient();
+	    maybeCreateHttpClient(cookie);
 	
 	    try {
 	    	response.setMessage(mHttpClient.execute(post, responseHandler));
+	    	response.setCookies((BasicCookieStore)mHttpClient.getCookieStore());
     		response.setStatus(SimpleResponse.PASS);
     		return response;
 	    } catch (final HttpResponseException e) {
@@ -185,5 +199,4 @@ public class HttpController {
 	    }
 	}
 
-    
 }
