@@ -1,7 +1,12 @@
+/***
 This is a simple Http client package for Android. The caller will need to set up a
 WebModel object, and have a Handler listen for a SimpleResponse message.
 
+Added persistent cookie storage from loopj's library: https://github.com/loopj/android-async-http
+
 Example implementation:
+
+***/
 
 package com.example.example;
 
