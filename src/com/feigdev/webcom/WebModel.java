@@ -29,6 +29,29 @@ public class WebModel {
 	private SimpleResponse response;
 	public static final int RESPONSE = 1001;
 	private WebComListener listener;
+	private String username;
+	private ArrayList<NameValuePair> headParams;
+	
+	public String getUsername() {
+		return username;
+	}
+
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+
+	public String getPassword() {
+		return password;
+	}
+
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	private String password;
 	private BasicCookieStore cookies;
 	
 	/**
@@ -53,6 +76,8 @@ public class WebModel {
 		response.setStatus(SimpleResponse.NOTEXECUTED);
 		this.listener = listener;
 		parameters = new HashMap<String,Object>();
+		headParams = new ArrayList<NameValuePair>();
+		
 	}
 	
 	
@@ -70,6 +95,7 @@ public class WebModel {
 		isSecure = false;
 		requestType = "get";
 		contentType = "text/html";
+		cookies = null;
 		response = new SimpleResponse();
 		response.setId(id);
 		response.setUrl(url);
@@ -77,6 +103,7 @@ public class WebModel {
 		response.setStatus(SimpleResponse.NOTEXECUTED);
 		this.listener = listener;
 		parameters = new HashMap<String,Object>();
+		headParams = new ArrayList<NameValuePair>();
 	}
 	
 	/**
@@ -99,17 +126,18 @@ public class WebModel {
     		params.add(new BasicNameValuePair(key, (String)parameters.get(key)));
     	}
     	
-    	if(Constants.VERBOSE){
-    		Log.i(Constants.TAG,"interact("+ "" + ")");
-    	}
+    	if(Constants.VERBOSE){ Log.i(Constants.TAG,"interact("+ "" + ")");	}
     	
         Runnable runnable = new Runnable() {
             public void run() {
             	if (requestType.equals("get")){
-            		response = httpRequest.get(fixedUrl,contentType,response.getId(),cookies);
+            		response = httpRequest.get(fixedUrl,contentType,response.getId(),cookies,headParams);
             	}
             	else if (requestType.equals("post")){
-            		response = httpRequest.post(fixedUrl,params,contentType,response.getId(),cookies);
+            		response = httpRequest.post(fixedUrl,params,contentType,response.getId(),cookies,headParams);
+            	}
+            	else if (requestType.equals("post auth")){
+            		response = httpRequest.postAuth(fixedUrl,params,username,password,contentType,response.getId(),cookies,headParams);
             	}
             	if (listener != null){
             		listener.onResponse(response);
@@ -198,5 +226,19 @@ public class WebModel {
         t.start();
         return t;
     }
+
+    public void addHeadParam(String name, String value){
+    	headParams.add(new BasicNameValuePair(name,value));
+    }
+
+	public ArrayList<NameValuePair> getHeadParams() {
+		return headParams;
+	}
+
+
+	public void setHeadParams(ArrayList<NameValuePair> headParams) {
+		this.headParams = headParams;
+	}
+
 
 }
