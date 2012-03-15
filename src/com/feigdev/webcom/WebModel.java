@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -22,15 +25,20 @@ import android.util.Log;
  */
 public class WebModel {
 	private String url;
-	private String requestType;
+	private int requestType;
 	private boolean isSecure = false;
 	private String contentType;
 	private HashMap<String, Object> parameters;
+	private MultipartEntity params2;
 	private SimpleResponse response;
 	public static final int RESPONSE = 1001;
 	private WebComListener listener;
 	private String username;
 	private ArrayList<NameValuePair> headParams;
+	public static final int GET = 12313;
+	public static final int POST = 12314;
+	public static final int POST_AUTH = 12315;
+	public static final int POST_FILE = 12316;
 	
 	public String getUsername() {
 		return username;
@@ -66,9 +74,10 @@ public class WebModel {
 	public WebModel(String url, WebComListener listener){
 		this.url = url;
 		isSecure = false;
-		requestType = "get";
+		requestType = GET;
 		contentType = "text/html";
 		cookies = null;
+		setParams2(new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE));
 		response = new SimpleResponse();
 		response.setUrl(url);
 		response.setId(0);
@@ -93,7 +102,7 @@ public class WebModel {
 	public WebModel(String url, WebComListener listener, int id){
 		this.url = url;
 		isSecure = false;
-		requestType = "get";
+		requestType = GET;
 		contentType = "text/html";
 		cookies = null;
 		response = new SimpleResponse();
@@ -104,16 +113,14 @@ public class WebModel {
 		this.listener = listener;
 		parameters = new HashMap<String,Object>();
 		headParams = new ArrayList<NameValuePair>();
+		setParams2(new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE));
 	}
 	
 	/**
 	 * Run the interaction in the background
 	 */
 	public void interact(){
-    	final HttpController httpRequest = new HttpController();    	
-    	final String fixedUrl = this.getUrl();
-    	final String contentType = this.getContentType();
-    	final String requestType = this.getRequestType();
+    	final HttpController httpRequest = new HttpController(); 
     	HashMap<String, Object> parameters = this.getParameters();
     	Iterator<String> it = parameters.keySet().iterator();
     	
@@ -130,14 +137,19 @@ public class WebModel {
     	
         Runnable runnable = new Runnable() {
             public void run() {
-            	if (requestType.equals("get")){
-            		response = httpRequest.get(fixedUrl,contentType,response.getId(),cookies,headParams);
-            	}
-            	else if (requestType.equals("post")){
-            		response = httpRequest.post(fixedUrl,params,contentType,response.getId(),cookies,headParams);
-            	}
-            	else if (requestType.equals("post auth")){
-            		response = httpRequest.postAuth(fixedUrl,params,username,password,contentType,response.getId(),cookies,headParams);
+            	switch (requestType){
+            	case GET:
+            		response = httpRequest.get(getUrl(),contentType,response.getId(),cookies,headParams);
+            		break;
+            	case POST:
+            		response = httpRequest.post(getUrl(),params,contentType,response.getId(),cookies,headParams);
+            		break;
+            	case POST_AUTH:
+            		response = httpRequest.postAuth(getUrl(),params,username,password,contentType,response.getId(),cookies,headParams);
+            		break;
+            	case POST_FILE:
+            		response = httpRequest.postFile(getUrl(),params2,contentType,response.getId(),cookies,headParams);
+            		break;
             	}
             	if (listener != null){
             		listener.onResponse(response);
@@ -163,15 +175,15 @@ public class WebModel {
 	public void setUrl(String url) {
 		this.url = url;
 	}
-	public String getRequestType() {
+	public int getRequestType() {
 		return requestType;
 	}
 	/**
 	 * 
 	 * @param requestType either get or set
 	 */
-	public void setRequestType(String requestType) {
-		this.requestType = requestType.toLowerCase();
+	public void setRequestType(int requestType) {
+		this.requestType = requestType;
 	}
 	public boolean isSecure() {
 		return isSecure;
@@ -238,6 +250,20 @@ public class WebModel {
 
 	public void setHeadParams(ArrayList<NameValuePair> headParams) {
 		this.headParams = headParams;
+	}
+
+
+	public MultipartEntity getParams2() {
+		return params2;
+	}
+
+
+	public void setParams2(MultipartEntity params2) {
+		this.params2 = params2;
+	}
+	
+	public void addMParam(String name, ContentBody value){
+		this.params2.addPart(name, value);
 	}
 
 

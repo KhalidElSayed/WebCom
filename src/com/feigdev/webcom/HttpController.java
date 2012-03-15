@@ -2,11 +2,7 @@ package com.feigdev.webcom;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.CookieStore;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -19,13 +15,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import android.net.Uri;
 import android.util.Log;
 
 import org.apache.http.impl.client.AbstractHttpClient;
@@ -178,6 +174,9 @@ public class HttpController {
 	
 	    try {
 	    	String resp = mHttpClient.execute(post, responseHandler);
+	    	if (Constants.VERBOSE){Log.d(TAG,"response="+resp);
+	    	Log.d(TAG,"responseHandler="+responseHandler.toString());
+	    	}
 	    	response.setMessage(resp);
 	    	response.setCookies((BasicCookieStore)mHttpClient.getCookieStore());
     		response.setStatus(SimpleResponse.PASS);
@@ -251,7 +250,10 @@ public class HttpController {
 		    maybeCreateHttpClient(cookie);
 		
 		    try {
-		    	response.setMessage(mHttpClient.execute(post, responseHandler));
+		    	String resp = mHttpClient.execute(post, responseHandler);
+		    	if (Constants.VERBOSE){Log.d(TAG,"response="+resp);
+		    	Log.d(TAG,"responseHandler="+responseHandler.toString());}
+		    	response.setMessage(resp);
 		    	response.setCookies((BasicCookieStore)mHttpClient.getCookieStore());
 	    		response.setStatus(SimpleResponse.PASS);
 	    		return response;
@@ -274,5 +276,72 @@ public class HttpController {
 		    	if(Constants.VERBOSE){ Log.i(TAG, "post completing"); }
 		    }
 		}
-
+		  /**
+		  * Connects to the server, performs a post and returns the results 
+		  * in a SimpleResponse object. 
+		  * 
+		  * @param url Full web address to get from
+		  * @param params paramaters built in WebModel
+	      * @param contentType what you expect to get back, text/html or text/json
+	      * @return SimpleResponse a simple object that describes the response. 
+	      * SimpleResponse.message contains the actual content that was returned
+	      * or the error message
+	      */
+		public SimpleResponse postFile(String url, MultipartEntity entity, String contentType, int id, BasicCookieStore cookie,ArrayList<NameValuePair> headParams) { 
+			SimpleResponse response = new SimpleResponse();
+		    response.setUrl(url);
+		    response.setId(id);
+		    response.setContentType(contentType);
+		    if (url.equals("")){
+		    	response.setStatus(SimpleResponse.FAIL);
+		    	response.setMessage("null url");
+		       	return response;
+		    }
+		 		     
+		    if(Constants.VERBOSE){ Log.i(TAG,"Posting to: " + url ); }
+		     
+		    final HttpPost post = new HttpPost(url);
+		    
+		    post.addHeader(entity.getContentType());
+		    for (NameValuePair nvp: headParams){
+		    	post.setHeader(nvp.getName(), nvp.getValue());
+	        }
+		    post.setEntity(entity);
+		    if (Constants.VERBOSE){
+		    	Log.d(TAG,"scheme= " + post.getURI().getScheme());
+		    	Log.d(TAG,"host= " + post.getURI().getHost());
+		    	Log.d(TAG,"path= " + post.getURI().getPath());
+		    	for(Header h : post.getAllHeaders()){
+		    		Log.d(TAG, h.getName() + "=" + h.getValue());
+		    	}
+		    }
+		    maybeCreateHttpClient(cookie);
+		
+		    try {
+		    	String resp = mHttpClient.execute(post, responseHandler);
+		    	if (Constants.VERBOSE){Log.d(TAG,"response="+resp);
+		    	Log.d(TAG,"responseHandler="+responseHandler.toString());}
+		    	response.setMessage(resp);
+		    	response.setCookies((BasicCookieStore)mHttpClient.getCookieStore());
+	    		response.setStatus(SimpleResponse.PASS);
+	    		return response;
+		    } catch (final HttpResponseException e) {
+		    	if(Constants.VERBOSE){ e.printStackTrace(); 	}
+		       	response.setStatus(SimpleResponse.FAIL);
+		       	response.setMessage("Site not found");
+		       	return response;
+		    } catch (ClientProtocolException e) {
+		       	if(Constants.VERBOSE){ e.printStackTrace(); }
+		       	response.setStatus(SimpleResponse.FAIL);
+		       	response.setMessage("Client Protocol Exception");
+		       	return response;
+		    } catch (IOException e) {
+				if(Constants.VERBOSE){ e.printStackTrace(); 	}
+		       	response.setStatus(SimpleResponse.FAIL);
+		       	response.setMessage("IO Exception");
+		       	return response;
+		    } finally {
+		    	if(Constants.VERBOSE){ Log.i(TAG, "post completing"); }
+		    }
+		} 
 }

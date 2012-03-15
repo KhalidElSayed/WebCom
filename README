@@ -39,7 +39,7 @@ public class ExampleActivity extends Activity implements WebComListener {
   public void makeRequest() {
     	WebModel wm = new WebModel("http://www.google.com", lHandle, GOOGLE);
     	wm.setContentType("text/html");
-    	wm.setRequestType("get");
+    	wm.setRequestType(WebModel.GET);
     	wm.interact();
   }
 
