@@ -2,7 +2,7 @@
 This is a simple Http client package for Android. The caller will need to set up a
 WebModel object, and have a Handler listen for a SimpleResponse message.
 
-Be sure to include httpmime-4.1.3.jar from apache in the build path. 
+httpmime-4.1.3.jar should now be provided by this module.
 
 Added persistent cookie storage from loopj's library: https://github.com/loopj/android-async-http
 
